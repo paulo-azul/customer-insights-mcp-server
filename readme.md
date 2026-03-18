@@ -3,6 +3,7 @@
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Express](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge&logo=express&logoColor=white)
 
 This repository contains the **Model Context Protocol (MCP) Server** for the Customer Insights Copilot. It acts as an isolated backend service, establishing a standardized communication layer between any AI Agent (Frontend) and the Supabase database.
 
@@ -10,7 +11,7 @@ By using the MCP, this server acts as a **Single Source of Truth**. The AI does 
 
 ## 🛠️ Available Tools (Capabilities)
 
-This server exposes the following tools to the AI via the `stdio` transport layer. Each tool is strictly typed using Zod schemas to prevent invalid database operations:
+This server exposes the following tools to the AI via an **HTTP Server-Sent Events (SSE)** transport layer. Each tool is strictly typed using Zod schemas to prevent invalid database operations:
 
 * `list_clients`: Retrieves a list of all registered clients, ordered by creation date.
 * `get_client_by_id`: Fetches the details of a specific client using their UUID.
@@ -35,18 +36,22 @@ Create a .env file in the root of this project (01_mcp_server/.env) and add your
 ```bash
 SUPABASE_URL=your_supabase_project_url
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+PORT=3001
 ```
 Note: We use the SERVICE_ROLE_KEY here because this server acts as an administrative backend, bypassing Row Level Security (RLS) policies for tool execution. Never expose this key in the frontend.
 
 ### 🔌 How it Works (Usage)
-Unlike traditional HTTP REST APIs, this server communicates via standard input/output (stdio). It is not meant to be started as a standalone web server.
+This server communicates via HTTP using Server-Sent Events (SSE) and Express.
 
-Instead, the client application (e.g., the Next.js app, Claude Desktop, or Cursor IDE) executes this script as a subprocess:
+To start the server locally, run:
 
 ```bash
-npx tsx /absolute/path/to/01_mcp_server/index.ts
+npm start
 ```
 
 The server will automatically resolve its own .env file regardless of where the command was initiated from, ensuring a reliable connection to Supabase.
+
+If you run this locally, the server will start listening on http://localhost:3001. Client applications (like the Next.js Frontend) should connect to the /sse endpoint to establish the MCP transport:
+http://localhost:3001/sse
 
 ### Author: Paulo Teles Serra Azul
